@@ -1,0 +1,84 @@
+{
+  "cases": [
+    { 
+      "id": "C-2026-001", 
+      "title": "State vs. Doe", 
+      "type": "Criminal", 
+      "status": "Active", 
+      "priority": "High",
+      "nextHearing": "2026-05-15", 
+      "judge": "Hon. Smith", 
+      "lawyers": ["John Wick", "Jane Doe"],
+      "description": "Robbery charges in the 1st degree.",
+      "timeline": [
+        {"event": "Case Created", "date": "2026-04-01"},
+        {"event": "Judge Assigned", "date": "2026-04-02"},
+        {"event": "Hearing Scheduled", "date": "2026-04-05"}
+      ],
+      "documents": [
+        {"name": "Initial Complaint.pdf", "type": "Order", "date": "2026-04-01"}
+      ]
+    },
+    { 
+      "id": "C-2026-002", 
+      "title": "TechCorp vs. InnovateLLC", 
+      "type": "Civil", 
+      "status": "Pending", 
+      "priority": "Medium",
+      "nextHearing": "2026-06-02", 
+      "judge": "Hon. Davis", 
+      "lawyers": ["Alice Smith"],
+      "description": "Patent infringement dispute over AI algorithms.",
+      "timeline": [
+        {"event": "Case Created", "date": "2026-04-10"}
+      ],
+      "documents": [
+        {"name": "Patent Filing.pdf", "type": "Evidence", "date": "2026-04-11"}
+      ]
+    },
+    { 
+      "id": "C-2026-003", 
+      "title": "Estate of Wayne", 
+      "type": "Probate", 
+      "status": "Closed", 
+      "priority": "Low",
+      "nextHearing": null, 
+      "judge": "Hon. Miller", 
+      "lawyers": [],
+      "description": "Execution of the Wayne estate and trust.",
+      "timeline": [
+        {"event": "Case Created", "date": "2025-12-01"},
+        {"event": "Case Closed", "date": "2026-03-15"}
+      ],
+      "documents": [
+        {"name": "Final Will.pdf", "type": "Report", "date": "2025-12-02"}
+      ]
+    },
+    { 
+      "id": "C-2026-004", 
+      "title": "City of Metropolis vs. LexCorp", 
+      "type": "Civil", 
+      "status": "Active", 
+      "priority": "High",
+      "nextHearing": "2026-05-20", 
+      "judge": "Hon. Smith", 
+      "lawyers": ["Bruce Wayne"],
+      "description": "Environmental damages and zoning law violations.",
+      "timeline": [
+        {"event": "Case Created", "date": "2026-04-15"}
+      ],
+      "documents": []
+    }
+  ],
+  "schedule": [
+    { "id": "S-101", "caseId": "C-2026-001", "title": "Arraignment: State vs. Doe", "date": "2026-05-15T09:00:00", "type": "Arraignment", "room": "Courtroom 3A", "judge": "Hon. Smith" },
+    { "id": "S-102", "caseId": "C-2026-002", "title": "Preliminary Hearing: TechCorp", "date": "2026-06-02T14:00:00", "type": "Preliminary Hearing", "room": "Courtroom 1B", "judge": "Hon. Davis" },
+    { "id": "S-103", "caseId": "C-2026-004", "title": "Motion to Dismiss: LexCorp", "date": "2026-05-20T10:30:00", "type": "Motion", "room": "Courtroom 2C", "judge": "Hon. Smith" }
+  ],
+  "users": [
+    { "id": "U-1", "username": "admin", "password": "password", "role": "Admin", "name": "Admin User" },
+    { "id": "U-2", "username": "judge_smith", "password": "password", "role": "Judge", "name": "Hon. Smith" },
+    { "id": "U-3", "username": "lawyer_wick", "password": "password", "role": "Lawyer", "name": "John Wick" },
+    { "id": "U-4", "username": "clerk_lee", "password": "password", "role": "Clerk", "name": "Lee Clerk" }
+  ]
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - AI Court Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .custom-bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+            height: 200px;
+            padding-top: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .bar-item {
+            flex: 1;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 1s ease-out;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="dashboard.html" class="brand">
+                <i class="fa-solid fa-scale-balanced"></i>
+                Astraea AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="cases.html"><i class="fa-solid fa-folder-open"></i> Cases</a></li>
+                <li><a href="schedule.html"><i class="fa-regular fa-calendar-days"></i> Schedule</a></li>
+                <li><a href="documents.html"><i class="fa-solid fa-file-invoice"></i> Documents</a></li>
+                <li><a href="ai-assistant.html"><i class="fa-solid fa-robot"></i> AI Assistant</a></li>
+                <li><a href="analytics.html" class="active"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="#" id="logout-btn"
+                    style="color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 12px; transition: 0.3s; background: rgba(244,63,94,0.1); margin-top: 0.5rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div>
+                    <h1 class="header-title">System Analytics</h1>
+                    <p style="color: var(--text-muted)">Live statistical insights from case records</p>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <div class="notification-bell">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">US</div>
+                        <span class="user-name">User Name</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid animate-fade-in">
+                <div class="glass-panel" style="grid-column: span 2;">
+                    <h3>Case Distribution by Type</h3>
+                    <div id="case-type-chart" class="custom-bar-chart">
+                        <!-- Bars will be injected here -->
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3>Case Status (%)</h3>
+                    <div id="status-stats" class="mt-1 d-flex flex-direction-column gap-1"
+                        style="flex-direction: column; margin-top: 2rem;">
+                        <!-- Status rows injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="glass-panel">
+                    <h3>Judge Performance</h3>
+                    <div class="table-responsive mt-1">
+                        <table class="data-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Judge</th>
+                                    <th>Total Cases</th>
+                                    <th>Pending</th>
+                                </tr>
+                            </thead>
+                            <tbody id="judge-stats-tbody">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="glass-panel" style="grid-column: span 2;">
+                    <h3>Priority Distribution</h3>
+                    <div id="priority-chart" class="custom-bar-chart">
+                        <!-- Bars injected here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/analytics.js"></script>
+</body>
+
+</html>

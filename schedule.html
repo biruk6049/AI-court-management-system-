@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - AI Court Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- FullCalendar CDN -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+        .fc {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        .fc-theme-standard td,
+        .fc-theme-standard th {
+            border: 1px solid var(--glass-border);
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.2rem !important;
+            font-weight: 700;
+        }
+
+        .fc-button-primary {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+            text-transform: capitalize;
+            font-size: 0.9rem !important;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-decoration: none !important;
+        }
+
+        .fc-col-header-cell-cushion {
+            color: var(--primary);
+            text-decoration: none !important;
+            font-size: 0.9rem;
+            padding: 10px !important;
+        }
+
+        .fc-event {
+            border: none;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .fc-day-today {
+            background: rgba(99, 102, 241, 0.05) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="dashboard.html" class="brand">
+                <i class="fa-solid fa-scale-balanced"></i>
+                Astraea AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="cases.html"><i class="fa-solid fa-folder-open"></i> Cases</a></li>
+                <li><a href="schedule.html" class="active"><i class="fa-regular fa-calendar-days"></i> Schedule</a></li>
+                <li><a href="documents.html"><i class="fa-solid fa-file-invoice"></i> Documents</a></li>
+                <li><a href="ai-assistant.html"><i class="fa-solid fa-robot"></i> AI Assistant</a></li>
+                <li><a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="#" id="logout-btn"
+                    style="color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 12px; transition: 0.3s; background: rgba(244,63,94,0.1); margin-top: 0.5rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div>
+                    <h1 class="header-title">Court Schedule</h1>
+                    <p style="color: var(--text-muted)">Upcoming hearings and events</p>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <div class="notification-bell">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar user-avatar">US</div>
+                        <span class="user-name">User Name</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="glass-panel animate-fade-in">
+                <div class="d-flex justify-between align-center mb-2">
+                    <h3>Interactive Calendar</h3>
+                    <button class="btn-primary clerk-only" onclick="App.showModal('new-hearing-modal')">
+                        <i class="fa-solid fa-calendar-plus"></i> Schedule Hearing
+                    </button>
+                </div>
+
+                <div id="calendar" style="min-height: 600px;"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Hearing Modal -->
+    <div id="new-hearing-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <h3>Schedule New Hearing</h3>
+            <form id="new-hearing-form" class="mt-2">
+                <div class="input-group">
+                    <label>Case Selection</label>
+                    <select id="hearing-case-id" required></select>
+                </div>
+                <div class="input-group">
+                    <label>Event Type</label>
+                    <select id="hearing-type" required>
+                        <option value="Hearing">Hearing</option>
+                        <option value="Trial">Trial</option>
+                        <option value="Pre-trial">Pre-trial Conference</option>
+                        <option value="Bail">Bail Hearing</option>
+                        <option value="Mediation">Mediation</option>
+                    </select>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="hearing-date" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Time</label>
+                        <input type="time" id="hearing-time" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Courtroom</label>
+                    <input type="text" id="hearing-room" placeholder="e.g. Room 304B" required>
+                </div>
+                <div class="d-flex gap-1 justify-end">
+                    <button type="button" class="btn-secondary"
+                        onclick="App.closeModal('new-hearing-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Confirm Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/schedule.js"></script>
+</body>
+
+</html>

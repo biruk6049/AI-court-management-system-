@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Court Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(14,165,233,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero animate-fade-in">
+        <i class="fa-solid fa-scale-balanced" style="font-size: 5rem; color: var(--primary); margin-bottom: 1.5rem; text-shadow: 0 0 20px rgba(99,102,241,0.5);"></i>
+        <h1>Justice Powered by AI</h1>
+        <p>A next-generation platform for court management, case scheduling, and AI-assisted legal research.</p>
+        <a href="login.html" class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+            Enter Portal <i class="fa-solid fa-gavel"></i>
+        </a>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

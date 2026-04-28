@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Details - AI Court Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="dashboard.html" class="brand">
+                <i class="fa-solid fa-scale-balanced"></i>
+                Astraea AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="cases.html" class="active"><i class="fa-solid fa-folder-open"></i> Cases</a></li>
+                <li><a href="schedule.html"><i class="fa-regular fa-calendar-days"></i> Schedule</a></li>
+                <li><a href="documents.html"><i class="fa-solid fa-file-invoice"></i> Documents</a></li>
+                <li><a href="ai-assistant.html"><i class="fa-solid fa-robot"></i> AI Assistant</a></li>
+                <li><a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="#" id="logout-btn"
+                    style="color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 12px; transition: 0.3s; background: rgba(244,63,94,0.1); margin-top: 0.5rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <a href="cases.html"
+                            style="color: var(--text-muted); text-decoration: none; font-size: 1.2rem;"><i
+                                class="fa-solid fa-arrow-left"></i></a>
+                        <h1 class="header-title" id="case-title">Loading...</h1>
+                    </div>
+                    <p style="color: var(--text-muted)">Case ID: <span id="case-id">---</span> | Priority: <span
+                            id="case-priority" class="priority">---</span></p>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <div class="notification-bell">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar">US</div>
+                        <span class="user-name">User Name</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid animate-fade-in" style="grid-template-columns: 2fr 1fr;">
+                <!-- Left Column -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- AI Summary -->
+                    <div class="glass-panel">
+                        <div class="d-flex justify-between align-center mb-1">
+                            <h3>Case Overview</h3>
+                            <button class="btn-primary" id="btn-ai-summary"
+                                style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Summary
+                            </button>
+                        </div>
+                        <p id="case-description" style="color: var(--text-muted); line-height: 1.8;">---</p>
+                        <div id="ai-summary-box"
+                            style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                            <h4 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-robot"></i>
+                                AI Short Overview</h4>
+                            <p id="ai-summary-text"
+                                style="font-size: 0.9rem; color: var(--text-main); font-style: italic;">Generating
+                                summary...</p>
+                        </div>
+                    </div>
+
+                    <!-- Parties & People -->
+                    <div class="glass-panel">
+                        <h3>Personnel Assigned</h3>
+                        <div class="dashboard-grid mt-1" style="grid-template-columns: repeat(2, 1fr);">
+                            <div>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    Presiding Judge</p>
+                                <div class="user-profile" style="background: rgba(255,255,255,0.05);">
+                                    <div class="user-avatar" style="background: var(--success)">J</div>
+                                    <span id="case-judge">---</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Lead
+                                    Lawyer(s)</p>
+                                <div id="case-lawyers-list" class="d-flex flex-wrap gap-1">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="glass-panel">
+                        <div class="d-flex justify-between align-center mb-1">
+                            <h3>Document Registry</h3>
+                            <button class="btn-primary clerk-only"
+                                style="font-size: 0.75rem; padding: 0.4rem 0.8rem;"><i class="fa-solid fa-upload"></i>
+                                Upload</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Upload Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documents-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Timeline & Metadata) -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="glass-panel">
+                        <div class="d-flex justify-between align-center mb-2">
+                            <h3>Case Timeline</h3>
+                            <span id="case-status" class="status">---</span>
+                        </div>
+                        <div class="timeline" id="case-timeline">
+                            <!-- Timeline items -->
+                        </div>
+                    </div>
+
+                    <div class="glass-panel">
+                        <h3>Quick Actions</h3>
+                        <div class="d-flex flex-direction-column gap-1 mt-1" style="flex-direction: column;">
+                            <button class="btn-primary clerk-only"
+                                onclick="alert('Scheduling Suggestion: Next Wednesday looks good based on judge availability.')">
+                                <i class="fa-solid fa-calendar-check"></i> AI Suggest Hearing
+                            </button>
+                            <button class="btn-secondary judge-only"
+                                style="color: var(--success); border-color: rgba(16, 185, 129, 0.3);">
+                                <i class="fa-solid fa-gavel"></i> Add Final Decision
+                            </button>
+                            <button class="btn-secondary clerk-only"
+                                style="color: var(--accent); border-color: rgba(244, 63, 94, 0.3);">
+                                <i class="fa-solid fa-box-archive"></i> Close Case
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const caseId = urlParams.get('id');
+            const cases = Storage.get('court_cases');
+            const currentCase = cases.find(c => c.id === caseId);
+
+            if (!currentCase) {
+                document.body.innerHTML = "<h1>Case not found</h1>";
+                return;
+            }
+
+            // Populate basics
+            document.getElementById('case-title').textContent = currentCase.title;
+            document.getElementById('case-id').textContent = currentCase.id;
+            document.getElementById('case-description').textContent = currentCase.description;
+            document.getElementById('case-judge').textContent = currentCase.judge;
+
+            const priorityEl = document.getElementById('case-priority');
+            priorityEl.textContent = currentCase.priority;
+            priorityEl.className = `priority ${currentCase.priority.toLowerCase()}`;
+
+            const statusEl = document.getElementById('case-status');
+            statusEl.textContent = currentCase.status;
+            statusEl.className = `status ${currentCase.status.toLowerCase()}`;
+
+            // Populate Lawyers
+            const lawyersList = document.getElementById('case-lawyers-list');
+            if (currentCase.lawyers.length > 0) {
+                currentCase.lawyers.forEach(lawyer => {
+                    const span = document.createElement('span');
+                    span.className = 'user-profile';
+                    span.style.fontSize = '0.8rem';
+                    span.innerHTML = `<div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.6rem;">L</div> ${lawyer}`;
+                    lawyersList.appendChild(span);
+                });
+            } else {
+                lawyersList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">No lawyers assigned yet.</span>';
+            }
+
+            // Populate Timeline
+            const timeline = document.getElementById('case-timeline');
+            currentCase.timeline.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'timeline-item';
+                div.innerHTML = `
+                    <div class="timeline-date">${item.date}</div>
+                    <div class="timeline-content">
+                        <h4>${item.event}</h4>
+                    </div>
+                `;
+                timeline.appendChild(div);
+            });
+
+            // Populate Documents
+            const docsTbody = document.getElementById('documents-tbody');
+            if (currentCase.documents.length > 0) {
+                currentCase.documents.forEach(doc => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${doc.name}</td>
+                        <td><span class="status closed" style="font-size: 0.65rem;">${doc.type}</span></td>
+                        <td>${doc.date}</td>
+                        <td><a href="#" class="btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;"><i class="fa-solid fa-download"></i></a></td>
+                    `;
+                    docsTbody.appendChild(tr);
+                });
+            } else {
+                docsTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">No documents uploaded.</td></tr>';
+            }
+
+            // AI Summary Logic
+            document.getElementById('btn-ai-summary').addEventListener('click', async () => {
+                const box = document.getElementById('ai-summary-box');
+                const text = document.getElementById('ai-summary-text');
+
+                box.style.display = 'block';
+                text.textContent = 'Generating professional summary...';
+
+                try {
+                    const { key, model, baseUrl } = App.apiConfig;
+                    const response = await fetch(baseUrl, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${key}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "user", content: `Summarize this legal case description into a single short paragraph starting with "This case involves...": ${currentCase.description}` }
+                            ]
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        text.textContent = data.choices[0].message.content;
+                    } else {
+                        throw new Error("API Error");
+                    }
+                } catch (e) {
+                    text.textContent = `Error: Unable to connect to AI summary service.`;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
