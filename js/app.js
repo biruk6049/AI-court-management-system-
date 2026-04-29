@@ -161,6 +161,27 @@ const App = {
         if (updated) {
             localStorage.setItem('court_schedule', JSON.stringify(schedules));
         }
+    },
+    updateCaseStatuses: () => {
+        const cases = JSON.parse(localStorage.getItem('court_cases') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        let updated = false;
+
+        cases.forEach(c => {
+            if (c.nextHearing && c.nextHearing.trim() !== '') {
+                if (c.nextHearing < today && c.status !== 'Closed') {
+                    c.status = 'Closed';
+                    updated = true;
+                } else if (c.nextHearing >= today && c.status !== 'Active' && c.status !== 'Closed') {
+                    c.status = 'Active';
+                    updated = true;
+                }
+            }
+        });
+
+        if (updated) {
+            localStorage.setItem('court_cases', JSON.stringify(cases));
+        }
     }
 };
 
@@ -168,4 +189,5 @@ document.addEventListener('DOMContentLoaded', () => {
     App.checkAuth();
     App.setupNavigation();
     App.initNotifications();
+    App.updateCaseStatuses();
 });

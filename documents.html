@@ -201,7 +201,18 @@
                     const file = fileInput.files[0];
                     if (!file) return;
 
+                    // Validate file size (Max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert("File is too large! Maximum allowed size is 2MB.");
+                        return;
+                    }
+
                     const caseId = document.getElementById('upload-case-id').value;
+                    if (!caseId) {
+                        alert("Please select a valid case.");
+                        return;
+                    }
+
                     const type = document.getElementById('upload-doc-type').value;
 
                     // Progress simulation
@@ -237,15 +248,31 @@
                                 const updatedCases = Storage.get('court_cases');
                                 const caseIdx = updatedCases.findIndex(c => c.id === caseId);
                                 if (caseIdx !== -1) {
+                                    if (!updatedCases[caseIdx].documents) updatedCases[caseIdx].documents = [];
+                                    if (!updatedCases[caseIdx].timeline) updatedCases[caseIdx].timeline = [];
+                                    
                                     updatedCases[caseIdx].documents.push(newDoc);
                                     updatedCases[caseIdx].timeline.push({
                                         event: `Document Uploaded: ${file.name}`,
                                         date: new Date().toISOString().split('T')[0]
                                     });
-                                    Storage.set('court_cases', updatedCases);
+                                    
+                                    try {
+                                        Storage.set('court_cases', updatedCases);
+                                        alert('Document uploaded and encrypted successfully!');
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert('Error saving document. The file might be too large for local storage.');
+                                        // Reset progress if failed
+                                        progressContainer.style.display = 'none';
+                                        progressBar.style.width = '0%';
+                                        uploadBtn.disabled = false;
+                                        return;
+                                    }
+                                } else {
+                                    alert('Case not found!');
                                 }
 
-                                alert('Document uploaded and encrypted successfully!');
                                 App.closeModal('upload-doc-modal');
                                 uploadForm.reset();
                                 progressContainer.style.display = 'none';

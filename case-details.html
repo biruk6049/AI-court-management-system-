@@ -151,7 +151,7 @@
                                 onclick="alert('Scheduling Suggestion: Next Wednesday looks good based on judge availability.')">
                                 <i class="fa-solid fa-calendar-check"></i> AI Suggest Hearing
                             </button>
-                            <button class="btn-secondary judge-only"
+                            <button class="btn-secondary judge-only" id="btn-final-decision"
                                 style="color: var(--success); border-color: rgba(16, 185, 129, 0.3);">
                                 <i class="fa-solid fa-gavel"></i> Add Final Decision
                             </button>
@@ -273,6 +273,62 @@
                     text.textContent = `Error: Unable to connect to AI summary service.`;
                 }
             });
+
+            // Final Decision Logic
+            const btnFinalDecision = document.getElementById('btn-final-decision');
+            if (btnFinalDecision) {
+                btnFinalDecision.addEventListener('click', async () => {
+                    const confirmDecision = confirm('Generate AI Final Decision for this case? This will close the case and add a final judgment to the timeline.');
+                    if (!confirmDecision) return;
+
+                    const originalHTML = btnFinalDecision.innerHTML;
+                    btnFinalDecision.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+                    btnFinalDecision.disabled = true;
+
+                    try {
+                        const { key, model, baseUrl } = App.apiConfig;
+                        const response = await fetch(baseUrl, {
+                            method: "POST",
+                            headers: {
+                                "Authorization": `Bearer ${key}`,
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                model: model,
+                                messages: [
+                                    { role: "user", content: `You are an AI Judge. Based on this legal case description: "${currentCase.description}". Please generate a formal, concise final decision (1-2 sentences) resolving the matter. Start with "Final Decision:"` }
+                                ]
+                            })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const decisionText = data.choices[0].message.content;
+
+                            // Update case
+                            const allCases = Storage.get('court_cases');
+                            const caseIdx = allCases.findIndex(c => c.id === currentCase.id);
+                            if (caseIdx !== -1) {
+                                allCases[caseIdx].status = 'Closed';
+                                if (!allCases[caseIdx].timeline) allCases[caseIdx].timeline = [];
+                                allCases[caseIdx].timeline.push({
+                                    event: `AI Judgment: ${decisionText}`,
+                                    date: new Date().toISOString().split('T')[0]
+                                });
+                                Storage.set('court_cases', allCases);
+                                alert('Final decision generated and case closed successfully.');
+                                location.reload(); // Reload to show updated timeline and status
+                            }
+                        } else {
+                            throw new Error("API Error");
+                        }
+                    } catch (e) {
+                        alert('Error generating final decision: ' + e.message);
+                        btnFinalDecision.innerHTML = originalHTML;
+                        btnFinalDecision.disabled = false;
+                    }
+                });
+            }
         });
     </script>
 </body>
