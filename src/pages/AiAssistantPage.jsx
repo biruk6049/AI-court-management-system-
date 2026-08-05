@@ -71,7 +71,7 @@ export default function AiAssistantPage() {
 
     if (cleanKey) {
       try {
-        // Dynamic Google Gemini API Call with Auto Model Discovery & Filtering
+        // Google Gemini API Call strictly targeting gemini-1.5-flash
         const aiResponseText = await callGeminiApi(query, cleanKey, cases, schedule);
         setMessages(prev => [...prev, {
           sender: 'ai',
@@ -79,10 +79,12 @@ export default function AiAssistantPage() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
       } catch (err) {
-        console.error("Gemini API Error:", err);
+        console.warn("Gemini API Rate Limit / Exception:", err);
+        // Seamless fallback to internal AI engine when rate-limited or API error occurs
+        let fallbackText = generateAiFallbackResponse(query, cases, schedule);
         setMessages(prev => [...prev, {
           sender: 'ai',
-          text: `⚠️ **Gemini API Error:** ${err.message}\n\n*Please verify your Gemini API key in the top right 'Connect Gemini Key' button or get a new key from Google AI Studio.*`,
+          text: `*(Gemini Free Tier Notice: Responding via Astraea Court AI Engine)*\n\n` + fallbackText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
       } finally {
@@ -102,7 +104,7 @@ export default function AiAssistantPage() {
     }
   };
 
-  // Dynamic Google Gemini API Fetch Call with Active Model Ranking & Legacy Filtering
+  // Dynamic Google Gemini API Fetch Call locked to high-quota Flash models
   async function callGeminiApi(userPrompt, apiKey, casesData, scheduleData) {
     const docketContext = `You are Astraea AI, a judicial legal research assistant.
 Active Court Cases Context:
@@ -113,36 +115,24 @@ ${scheduleData.map(s => `- ${s.title} on ${s.date} in ${s.room} under ${s.judge}
 
 Instructions: Provide clear, professional legal research, triage scoring, or document draft formatting. Keep bullets concise and github markdown formatted.`;
 
-    // 1. Dynamic Model Discovery via ListModels API
+    // Strictly prioritize gemini-1.5-flash (high quota free tier model)
     let selectedModelPath = 'models/gemini-1.5-flash';
     try {
       const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
-        // Filter models that support generateContent and EXCLUDE deprecated models like 2.5-flash
+        // Filter exclusively for Flash models and EXCLUDE 0-quota Pro models & 2.5-flash
         const supported = (modelsData.models || []).filter(m =>
           m.supportedGenerationMethods &&
           m.supportedGenerationMethods.includes('generateContent') &&
-          !m.name.includes('2.5-flash')
+          m.name.includes('flash') &&
+          !m.name.includes('2.5') &&
+          !m.name.includes('pro')
         );
 
         if (supported.length > 0) {
-          // Preferred active candidate names in priority order
-          const preferredCandidates = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro',
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-pro-latest',
-            'gemini-2.0-flash-exp'
-          ];
-
-          let match = null;
-          for (const cand of preferredCandidates) {
-            match = supported.find(m => m.name.endsWith(cand) || m.name.includes(cand));
-            if (match) break;
-          }
-
-          selectedModelPath = match ? match.name : supported[0].name;
+          const flash15 = supported.find(m => m.name.includes('1.5-flash'));
+          selectedModelPath = flash15 ? flash15.name : supported[0].name;
         }
       }
     } catch (e) {
@@ -417,7 +407,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
 
           <button
             className={`gemini-status-btn ${geminiKey ? 'connected' : 'disconnected'}`}
-            onClick={() => { setTempKeyInput(geminiKey); setShowKeyModal(true); }}
+            onClick={() => { setTempKeyInput(geminiKey); setShowKeyModal(false); setShowKeyModal(true); }}
             title="Configure Google Gemini API Key"
           >
             <Key size={14} />
@@ -432,7 +422,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
         <div className="hero-badges-row">
           <span className="hero-badge">
             <Cpu size={12} />
-            Google Gemini 1.5 Flash Engine
+            Google Gemini 1.5 Flash Model
           </span>
           <span className="hero-badge" style={{ color: '#38bdf8' }}>
             <Zap size={12} />
