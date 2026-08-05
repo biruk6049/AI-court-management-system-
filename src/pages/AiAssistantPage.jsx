@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCourt } from '../context/CourtContext';
 import { useAuth } from '../context/AuthContext';
-import { Bot, Send, Sparkles, RefreshCw, Scale, Shield, FileText, Cpu, Zap, Activity, Key, Check } from 'lucide-react';
+import { Bot, Send, Sparkles, RefreshCw, Scale, Shield, FileText, Cpu, Zap, Activity, Key, Check, AlertCircle } from 'lucide-react';
 
 export default function AiAssistantPage() {
   const { cases, schedule } = useCourt();
   const { profile } = useAuth();
 
   const [geminiKey, setGeminiKey] = useState(
-    import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('astraea_gemini_key') || ''
+    (import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('astraea_gemini_key') || '').trim()
   );
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [tempKeyInput, setTempKeyInput] = useState(geminiKey);
@@ -36,11 +36,17 @@ export default function AiAssistantPage() {
     { label: "Summarize TechCorp Case", text: "Summarize TechCorp vs. InnovateLLC patent dispute", icon: Cpu }
   ];
 
+  const sanitizeKey = (rawKey) => {
+    if (!rawKey) return '';
+    return rawKey.trim().replace(/^["']|["']$/g, '');
+  };
+
   const handleSaveKey = (e) => {
     e.preventDefault();
-    setGeminiKey(tempKeyInput);
-    if (tempKeyInput) {
-      localStorage.setItem('astraea_gemini_key', tempKeyInput);
+    const cleanKey = sanitizeKey(tempKeyInput);
+    setGeminiKey(cleanKey);
+    if (cleanKey) {
+      localStorage.setItem('astraea_gemini_key', cleanKey);
     } else {
       localStorage.removeItem('astraea_gemini_key');
     }
@@ -61,41 +67,42 @@ export default function AiAssistantPage() {
     if (!textToSend) setInput('');
     setIsTyping(true);
 
-    try {
-      if (geminiKey) {
-        // Call Google Gemini API
-        const aiResponseText = await callGeminiApi(query, geminiKey, cases, schedule);
+    const cleanKey = sanitizeKey(geminiKey);
+
+    if (cleanKey) {
+      try {
+        // Call Google Gemini API with multi-model fallback
+        const aiResponseText = await callGeminiApi(query, cleanKey, cases, schedule);
         setMessages(prev => [...prev, {
           sender: 'ai',
           text: aiResponseText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
-      } else {
-        // Context-aware fallback response engine
-        setTimeout(() => {
-          let aiText = generateAiFallbackResponse(query, cases, schedule);
-          setMessages(prev => [...prev, {
-            sender: 'ai',
-            text: aiText,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }]);
-        }, 900);
+      } catch (err) {
+        console.error("Gemini API Connection Exception:", err);
+        setMessages(prev => [...prev, {
+          sender: 'ai',
+          text: `⚠️ **Gemini API Error:** ${err.message}\n\n*Please verify your Gemini API key in the top right 'Connect Gemini Key' button or get a new key from Google AI Studio.*`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+      } finally {
+        setIsTyping(false);
       }
-    } catch (err) {
-      console.error("Gemini API Error:", err);
-      // Fallback on error
-      let aiText = generateAiFallbackResponse(query, cases, schedule);
-      setMessages(prev => [...prev, {
-        sender: 'ai',
-        text: `*(Gemini API Notice: Connected via fallback engine)*\n\n` + aiText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
-    } finally {
-      setIsTyping(false);
+    } else {
+      // Offline / Fallback Response Engine
+      setTimeout(() => {
+        let aiText = generateAiFallbackResponse(query, cases, schedule);
+        setMessages(prev => [...prev, {
+          sender: 'ai',
+          text: aiText,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+        setIsTyping(false);
+      }, 700);
     }
   };
 
-  // Google Gemini API Fetch Call
+  // Google Gemini API Fetch Call with Multi-Model Fallback
   async function callGeminiApi(userPrompt, apiKey, casesData, scheduleData) {
     const docketContext = `You are Astraea AI, a judicial legal research assistant.
 Active Court Cases Context:
@@ -106,32 +113,54 @@ ${scheduleData.map(s => `- ${s.title} on ${s.date} in ${s.room} under ${s.judge}
 
 Instructions: Provide clear, professional legal research, triage scoring, or document draft formatting. Keep bullets concise and github markdown formatted.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
+    const modelsToTry = [
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-2.5-flash',
+      'gemini-pro'
+    ];
+
+    let lastErrorMsg = '';
+
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
+                ]
+              }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
 
-    if (!response.ok) {
-      throw new Error(`Gemini API HTTP Error ${response.status}`);
+        if (!response.ok) {
+          const errBody = await response.text();
+          let jsonErr;
+          try { jsonErr = JSON.parse(errBody); } catch (e) {}
+          const detail = jsonErr?.error?.message || response.statusText || `HTTP ${response.status}`;
+          lastErrorMsg = `[${modelName}] ${detail}`;
+          console.warn(`Gemini Model ${modelName} returned status ${response.status}: ${detail}`);
+          continue;
+        }
+
+        const data = await response.json();
+        const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (resultText) {
+          return resultText;
+        }
+      } catch (e) {
+        lastErrorMsg = e.message;
+        console.warn(`Fetch error trying Gemini model ${modelName}:`, e);
+      }
     }
 
-    const data = await response.json();
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (resultText) {
-      return resultText;
-    } else {
-      throw new Error("No output candidate returned from Gemini API");
-    }
+    throw new Error(lastErrorMsg || "Failed to communicate with Google Gemini API endpoints.");
   }
 
   function generateAiFallbackResponse(query, cases, schedule) {
@@ -366,11 +395,11 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
 
           <button
             className={`gemini-status-btn ${geminiKey ? 'connected' : 'disconnected'}`}
-            onClick={() => setShowKeyModal(true)}
+            onClick={() => { setTempKeyInput(geminiKey); setShowKeyModal(true); }}
             title="Configure Google Gemini API Key"
           >
             <Key size={14} />
-            <span>{geminiKey ? 'Gemini API Active' : 'Connect Gemini Key'}</span>
+            <span>{geminiKey ? 'Gemini API Connected' : 'Connect Gemini Key'}</span>
           </button>
         </div>
 
@@ -381,7 +410,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
         <div className="hero-badges-row">
           <span className="hero-badge">
             <Cpu size={12} />
-            Google Gemini 1.5 Flash Model
+            Google Gemini API (2.0 / 1.5 Flash)
           </span>
           <span className="hero-badge" style={{ color: '#38bdf8' }}>
             <Zap size={12} />
@@ -461,7 +490,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
             </div>
 
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-              Enter your Google Gemini API key to enable live AI responses powered directly by Google's <code>gemini-1.5-flash</code> model. You can get a free API key at <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: '#38bdf8' }}>Google AI Studio</a>.
+              Enter your Google Gemini API key to enable live AI responses. Get a free API key at <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: '#38bdf8' }}>Google AI Studio</a>.
             </p>
 
             <form onSubmit={handleSaveKey}>
