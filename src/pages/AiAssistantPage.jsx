@@ -79,12 +79,10 @@ export default function AiAssistantPage() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
       } catch (err) {
-        console.warn("Gemini API Rate Limit / Exception:", err);
-        // Seamless fallback to internal AI engine when rate-limited or API error occurs
-        let fallbackText = generateAiFallbackResponse(query, cases, schedule);
+        console.error("Gemini API Error:", err);
         setMessages(prev => [...prev, {
           sender: 'ai',
-          text: `*(Gemini Free Tier Notice: Responding via Astraea Court AI Engine)*\n\n` + fallbackText,
+          text: `⚠️ **Gemini API Error:** ${err.message}\n\n*If this persists, check your API key or get a new one at [Google AI Studio](https://aistudio.google.com/).*`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
       } finally {
@@ -104,7 +102,7 @@ export default function AiAssistantPage() {
     }
   };
 
-  // Dynamic Google Gemini API Fetch Call locked to high-quota Flash models
+  // Google Gemini API — discover available models then try each one
   async function callGeminiApi(userPrompt, apiKey, casesData, scheduleData) {
     const docketContext = `You are Astraea AI, a judicial legal research assistant.
 Active Court Cases Context:
@@ -115,64 +113,78 @@ ${scheduleData.map(s => `- ${s.title} on ${s.date} in ${s.room} under ${s.judge}
 
 Instructions: Provide clear, professional legal research, triage scoring, or document draft formatting. Keep bullets concise and github markdown formatted.`;
 
-    // Strictly prioritize gemini-1.5-flash (high quota free tier model)
-    let selectedModelPath = 'models/gemini-1.5-flash';
-    try {
-      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-      if (modelsRes.ok) {
-        const modelsData = await modelsRes.json();
-        // Filter exclusively for Flash models and EXCLUDE 0-quota Pro models & 2.5-flash
-        const supported = (modelsData.models || []).filter(m =>
-          m.supportedGenerationMethods &&
-          m.supportedGenerationMethods.includes('generateContent') &&
-          m.name.includes('flash') &&
-          !m.name.includes('2.5') &&
-          !m.name.includes('pro')
-        );
-
-        if (supported.length > 0) {
-          const flash15 = supported.find(m => m.name.includes('1.5-flash'));
-          selectedModelPath = flash15 ? flash15.name : supported[0].name;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not list models, defaulting to models/gemini-1.5-flash:", e);
+    // Step 1: Discover available models via ListModels API
+    const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (!modelsRes.ok) {
+      const errText = await modelsRes.text();
+      throw new Error(`ListModels failed (HTTP ${modelsRes.status}): ${errText}`);
     }
 
-    // Strip leading "models/" if present for URL path
-    const modelEndpoint = selectedModelPath.replace(/^models\//, '');
+    const modelsData = await modelsRes.json();
+    const allModels = modelsData.models || [];
 
-    // 2. Call Content Generation Endpoint
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelEndpoint}:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
+    // Filter to models that support generateContent
+    const generativeModels = allModels.filter(m =>
+      m.supportedGenerationMethods &&
+      m.supportedGenerationMethods.includes('generateContent')
+    );
+
+    console.log('Available Gemini models for generateContent:', generativeModels.map(m => m.name));
+
+    if (generativeModels.length === 0) {
+      throw new Error(`Your API key has no models available for generateContent. Found ${allModels.length} total models: ${allModels.map(m => m.name).join(', ')}`);
+    }
+
+    // Step 2: Try each model until one succeeds
+    let lastError = '';
+    for (const model of generativeModels) {
+      const modelId = model.name; // e.g. "models/gemini-2.0-flash"
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${modelId}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
+                ]
+              }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
 
-    if (!response.ok) {
-      const errBody = await response.text();
-      let jsonErr;
-      try { jsonErr = JSON.parse(errBody); } catch (e) {}
-      const detail = jsonErr?.error?.message || response.statusText || `HTTP ${response.status}`;
-      throw new Error(`[${modelEndpoint}] ${detail}`);
+        if (!response.ok) {
+          const errBody = await response.text();
+          let jsonErr;
+          try { jsonErr = JSON.parse(errBody); } catch (e) {}
+          const detail = jsonErr?.error?.message || `HTTP ${response.status}`;
+          console.warn(`Model ${modelId} failed: ${detail}`);
+          lastError = `[${modelId}] ${detail}`;
+          continue; // Try next model
+        }
+
+        const data = await response.json();
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        // Filter out "thinking" parts (thought: true) — only keep the actual response
+        const responseParts = parts.filter(p => !p.thought && p.text);
+        const resultText = responseParts.length > 0
+          ? responseParts.map(p => p.text).join('\n')
+          : parts.find(p => p.text)?.text; // fallback: use any text part
+        if (resultText) {
+          console.log(`Successfully used model: ${modelId}`);
+          return resultText;
+        }
+      } catch (fetchErr) {
+        console.warn(`Fetch error for ${modelId}:`, fetchErr);
+        lastError = fetchErr.message;
+        continue;
+      }
     }
 
-    const data = await response.json();
-    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (resultText) {
-      return resultText;
-    } else {
-      throw new Error(`No output text returned from Gemini model (${modelEndpoint}).`);
-    }
+    // All models failed
+    throw new Error(`All ${generativeModels.length} models failed. Last error: ${lastError}\n\nAvailable models tried: ${generativeModels.map(m => m.name).join(', ')}`);
   }
 
   function generateAiFallbackResponse(query, cases, schedule) {
