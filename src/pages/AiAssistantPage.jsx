@@ -71,7 +71,7 @@ export default function AiAssistantPage() {
 
     if (cleanKey) {
       try {
-        // Dynamic Google Gemini API Call with Auto Model Discovery
+        // Dynamic Google Gemini API Call with Auto Model Discovery & Filtering
         const aiResponseText = await callGeminiApi(query, cleanKey, cases, schedule);
         setMessages(prev => [...prev, {
           sender: 'ai',
@@ -102,7 +102,7 @@ export default function AiAssistantPage() {
     }
   };
 
-  // Dynamic Google Gemini API Fetch Call with Model Discovery
+  // Dynamic Google Gemini API Fetch Call with Active Model Ranking & Legacy Filtering
   async function callGeminiApi(userPrompt, apiKey, casesData, scheduleData) {
     const docketContext = `You are Astraea AI, a judicial legal research assistant.
 Active Court Cases Context:
@@ -119,14 +119,30 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
       const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
+        // Filter models that support generateContent and EXCLUDE deprecated models like 2.5-flash
         const supported = (modelsData.models || []).filter(m =>
-          m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+          m.supportedGenerationMethods &&
+          m.supportedGenerationMethods.includes('generateContent') &&
+          !m.name.includes('2.5-flash')
         );
 
         if (supported.length > 0) {
-          // Prefer flash models, otherwise first supported model
-          const flashModel = supported.find(m => m.name.includes('flash'));
-          selectedModelPath = flashModel ? flashModel.name : supported[0].name;
+          // Preferred active candidate names in priority order
+          const preferredCandidates = [
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-pro-latest',
+            'gemini-2.0-flash-exp'
+          ];
+
+          let match = null;
+          for (const cand of preferredCandidates) {
+            match = supported.find(m => m.name.endsWith(cand) || m.name.includes(cand));
+            if (match) break;
+          }
+
+          selectedModelPath = match ? match.name : supported[0].name;
         }
       }
     } catch (e) {
@@ -416,7 +432,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
         <div className="hero-badges-row">
           <span className="hero-badge">
             <Cpu size={12} />
-            Auto-Discovered Gemini Model
+            Google Gemini 1.5 Flash Engine
           </span>
           <span className="hero-badge" style={{ color: '#38bdf8' }}>
             <Zap size={12} />
