@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCourt } from '../context/CourtContext';
 import { useAuth } from '../context/AuthContext';
-import { Bot, Send, Sparkles, RefreshCw, Scale, Shield, FileText, Cpu, Zap, Activity, Key, Check, AlertCircle } from 'lucide-react';
+import { Bot, Send, Sparkles, RefreshCw, Scale, Shield, FileText, Cpu, Zap, Activity, Key, Check } from 'lucide-react';
 
 export default function AiAssistantPage() {
   const { cases, schedule } = useCourt();
@@ -71,7 +71,7 @@ export default function AiAssistantPage() {
 
     if (cleanKey) {
       try {
-        // Call Google Gemini API with multi-model fallback
+        // Dynamic Google Gemini API Call with Auto Model Discovery
         const aiResponseText = await callGeminiApi(query, cleanKey, cases, schedule);
         setMessages(prev => [...prev, {
           sender: 'ai',
@@ -79,7 +79,7 @@ export default function AiAssistantPage() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
       } catch (err) {
-        console.error("Gemini API Connection Exception:", err);
+        console.error("Gemini API Error:", err);
         setMessages(prev => [...prev, {
           sender: 'ai',
           text: `⚠️ **Gemini API Error:** ${err.message}\n\n*Please verify your Gemini API key in the top right 'Connect Gemini Key' button or get a new key from Google AI Studio.*`,
@@ -102,7 +102,7 @@ export default function AiAssistantPage() {
     }
   };
 
-  // Google Gemini API Fetch Call with Multi-Model Fallback
+  // Dynamic Google Gemini API Fetch Call with Model Discovery
   async function callGeminiApi(userPrompt, apiKey, casesData, scheduleData) {
     const docketContext = `You are Astraea AI, a judicial legal research assistant.
 Active Court Cases Context:
@@ -113,54 +113,60 @@ ${scheduleData.map(s => `- ${s.title} on ${s.date} in ${s.room} under ${s.judge}
 
 Instructions: Provide clear, professional legal research, triage scoring, or document draft formatting. Keep bullets concise and github markdown formatted.`;
 
-    const modelsToTry = [
-      'gemini-2.0-flash',
-      'gemini-1.5-flash',
-      'gemini-2.5-flash',
-      'gemini-pro'
-    ];
+    // 1. Dynamic Model Discovery via ListModels API
+    let selectedModelPath = 'models/gemini-1.5-flash';
+    try {
+      const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      if (modelsRes.ok) {
+        const modelsData = await modelsRes.json();
+        const supported = (modelsData.models || []).filter(m =>
+          m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+        );
 
-    let lastErrorMsg = '';
-
-    for (const modelName of modelsToTry) {
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: 'user',
-                parts: [
-                  { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
-                ]
-              }
-            ]
-          })
-        });
-
-        if (!response.ok) {
-          const errBody = await response.text();
-          let jsonErr;
-          try { jsonErr = JSON.parse(errBody); } catch (e) {}
-          const detail = jsonErr?.error?.message || response.statusText || `HTTP ${response.status}`;
-          lastErrorMsg = `[${modelName}] ${detail}`;
-          console.warn(`Gemini Model ${modelName} returned status ${response.status}: ${detail}`);
-          continue;
+        if (supported.length > 0) {
+          // Prefer flash models, otherwise first supported model
+          const flashModel = supported.find(m => m.name.includes('flash'));
+          selectedModelPath = flashModel ? flashModel.name : supported[0].name;
         }
-
-        const data = await response.json();
-        const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (resultText) {
-          return resultText;
-        }
-      } catch (e) {
-        lastErrorMsg = e.message;
-        console.warn(`Fetch error trying Gemini model ${modelName}:`, e);
       }
+    } catch (e) {
+      console.warn("Could not list models, defaulting to models/gemini-1.5-flash:", e);
     }
 
-    throw new Error(lastErrorMsg || "Failed to communicate with Google Gemini API endpoints.");
+    // Strip leading "models/" if present for URL path
+    const modelEndpoint = selectedModelPath.replace(/^models\//, '');
+
+    // 2. Call Content Generation Endpoint
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelEndpoint}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: `${docketContext}\n\nUser Question: ${userPrompt}` }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      let jsonErr;
+      try { jsonErr = JSON.parse(errBody); } catch (e) {}
+      const detail = jsonErr?.error?.message || response.statusText || `HTTP ${response.status}`;
+      throw new Error(`[${modelEndpoint}] ${detail}`);
+    }
+
+    const data = await response.json();
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (resultText) {
+      return resultText;
+    } else {
+      throw new Error(`No output text returned from Gemini model (${modelEndpoint}).`);
+    }
   }
 
   function generateAiFallbackResponse(query, cases, schedule) {
@@ -410,7 +416,7 @@ Instructions: Provide clear, professional legal research, triage scoring, or doc
         <div className="hero-badges-row">
           <span className="hero-badge">
             <Cpu size={12} />
-            Google Gemini API (2.0 / 1.5 Flash)
+            Auto-Discovered Gemini Model
           </span>
           <span className="hero-badge" style={{ color: '#38bdf8' }}>
             <Zap size={12} />
