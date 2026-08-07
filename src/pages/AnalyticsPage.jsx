@@ -44,6 +44,10 @@ export default function AnalyticsPage() {
           overflow: hidden;
         }
 
+        body.light-theme .bar-bg {
+          background: #e2e8f0;
+        }
+
         .bar-fill {
           height: 100%;
           border-radius: 5px;

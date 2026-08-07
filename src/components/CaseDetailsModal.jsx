@@ -147,7 +147,7 @@ export default function CaseDetailsModal({ caseItem, isOpen, onClose, onSchedule
               marginBottom: '1.5rem'
             }}>
               <div style={{ fontSize: '0.8rem', color: '#a5b4fc', fontWeight: 600, textTransform: 'uppercase' }}>Next Hearing Date</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0.3rem 0', color: 'white' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0.3rem 0', color: 'var(--text-main)' }}>
                 {caseItem.nextHearing ? new Date(caseItem.nextHearing).toLocaleString() : 'No Hearing Scheduled'}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

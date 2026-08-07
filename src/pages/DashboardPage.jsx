@@ -26,6 +26,11 @@ export default function DashboardPage({ setActivePage, onOpenNewCase, onOpenNewH
           justify-content: space-between;
         }
 
+        body.light-theme .welcome-banner {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(14, 165, 233, 0.06));
+          border-color: rgba(99, 102, 241, 0.25);
+        }
+
         .section-title {
           font-size: 1.15rem;
           font-weight: 700;
@@ -54,10 +59,19 @@ export default function DashboardPage({ setActivePage, onOpenNewCase, onOpenNewH
           transition: var(--transition);
         }
 
+        body.light-theme .case-card-row {
+          background: #f8fafc;
+        }
+
         .case-card-row:hover {
           background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.2);
           transform: translateX(4px);
+        }
+
+        body.light-theme .case-card-row:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
         }
 
         .hearing-item {
@@ -66,6 +80,10 @@ export default function DashboardPage({ setActivePage, onOpenNewCase, onOpenNewH
           background: rgba(14, 165, 233, 0.08);
           border-left: 4px solid var(--secondary);
           margin-bottom: 0.75rem;
+        }
+
+        body.light-theme .hearing-item {
+          background: #f0f9ff;
         }
 
         .audit-item {
@@ -198,9 +216,9 @@ export default function DashboardPage({ setActivePage, onOpenNewCase, onOpenNewH
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
               <Sparkles size={20} style={{ color: '#c084fc' }} />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e9d5ff' }}>AI Judicial Assistant Summary</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Judicial Assistant Summary</h3>
             </div>
-            <p style={{ fontSize: '0.875rem', color: '#ddd6fe', lineHeight: '1.6' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
               Case <strong>C-2026-001 (State vs. Doe)</strong> has an upcoming hearing in 9 days. High priority flag detected based on criminal charge severity and witness filing updates.
             </p>
             <button
@@ -230,7 +248,7 @@ export default function DashboardPage({ setActivePage, onOpenNewCase, onOpenNewH
             {upcomingHearings.length > 0 ? (
               upcomingHearings.map(h => (
                 <div key={h.id} className="hearing-item">
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'white' }}>{h.title}</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{h.title}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
                     <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
                     {new Date(h.date).toLocaleString()}

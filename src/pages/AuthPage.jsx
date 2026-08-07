@@ -107,8 +107,18 @@ export default function AuthPage() {
           transform: translateY(-2px);
         }
 
+        body.light-theme .role-card-btn:hover {
+          background: #f1f5f9;
+          border-color: #94a3b8;
+        }
+
         .role-card-btn.active {
           background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(14, 165, 233, 0.25));
+          border-color: var(--primary);
+        }
+
+        body.light-theme .role-card-btn.active {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
           border-color: var(--primary);
         }
       `}</style>
@@ -116,10 +126,19 @@ export default function AuthPage() {
       <div className="auth-card-container">
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #6366f1, #0ea5e9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', margin: '0 auto 1rem', boxShadow: '0 8px 25px rgba(99, 102, 241, 0.4)' }}>
-            <Sparkles size={28} />
-          </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Astraea AI Portal</h1>
+          <img
+            src="/astrea_logo.png"
+            alt="ASTREA - AI Court Management System"
+            style={{
+              height: 60,
+              width: 'auto',
+              objectFit: 'contain',
+              margin: '0 auto 1rem',
+              display: 'block',
+              borderRadius: 12
+            }}
+          />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>ASTREA Portal</h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             Select your judicial role to sign in to the court network
           </p>

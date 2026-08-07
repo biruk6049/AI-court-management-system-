@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCourt } from '../context/CourtContext';
-import { Search, Sun, Moon, Shield, LogOut, Sparkles, ChevronDown, Menu } from 'lucide-react';
+import { Search, Sun, Moon, Shield, LogOut, ChevronDown, Menu } from 'lucide-react';
 
 export default function Navbar({ activePage, setActivePage, onToggleSidebar, onOpenRoleModal }) {
   const { profile, logout } = useAuth();
@@ -78,30 +78,54 @@ export default function Navbar({ activePage, setActivePage, onToggleSidebar, onO
           border-color: var(--primary);
         }
 
+        body.light-theme .hamburger-btn {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          color: #0f172a;
+        }
+
+        body.light-theme .hamburger-btn:hover {
+          background: rgba(99, 102, 241, 0.15);
+          border-color: var(--primary);
+        }
+
         .brand-container {
           display: flex;
           align-items: center;
-          gap: 0.65rem;
+          gap: 0.75rem;
           cursor: pointer;
+          text-decoration: none;
         }
 
-        .brand-logo {
-          width: 38px;
-          height: 38px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #6366f1, #0ea5e9);
+        .brand-logo-img {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+          border-radius: 8px;
+        }
+
+        .brand-text {
           display: flex;
-          align-items: center;
+          flex-direction: column;
           justify-content: center;
-          color: white;
         }
 
         .brand-title {
           font-family: 'Outfit', sans-serif;
-          font-size: 1.2rem;
+          font-size: 1.25rem;
           font-weight: 800;
           color: var(--text-main);
           line-height: 1.1;
+          letter-spacing: 0.04em;
+        }
+
+        .brand-subtitle {
+          font-size: 0.6rem;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-weight: 600;
+          margin-top: 1px;
         }
 
         .search-box {
@@ -202,8 +226,21 @@ export default function Navbar({ activePage, setActivePage, onToggleSidebar, onO
           z-index: 1100;
         }
 
+        body.light-theme .user-dropdown-menu {
+          background: #ffffff;
+          border-color: #e2e8f0;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        body.light-theme .role-btn {
+          background: rgba(99, 102, 241, 0.1);
+          color: #4f46e5;
+          border-color: rgba(99, 102, 241, 0.3);
+        }
+
         @media (max-width: 768px) {
           .search-box { width: 130px; }
+          .brand-text { display: none; }
         }
       `}</style>
 
@@ -214,14 +251,14 @@ export default function Navbar({ activePage, setActivePage, onToggleSidebar, onO
         </button>
 
         <div className="brand-container" onClick={() => setActivePage('dashboard')}>
-          <div className="brand-logo">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <div className="brand-title">Astraea AI</div>
-            <div style={{ fontSize: '0.625rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-              Court Management System
-            </div>
+          <img
+            src="/astrea_logo.png"
+            alt="ASTREA - AI Court Management System"
+            className="brand-logo-img"
+          />
+          <div className="brand-text">
+            <div className="brand-title">ASTREA</div>
+            <div className="brand-subtitle">AI Court Management</div>
           </div>
         </div>
 

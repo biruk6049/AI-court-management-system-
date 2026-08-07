@@ -116,8 +116,19 @@ body.light-theme .glass-panel {
   box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
 }
 
+body.light-theme .glass-panel:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
 .gradient-text {
   background: linear-gradient(135deg, #a5b4fc, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .gradient-text {
+  background: linear-gradient(135deg, #6366f1, #0ea5e9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

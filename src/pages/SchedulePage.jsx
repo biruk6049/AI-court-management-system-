@@ -49,6 +49,11 @@ export default function SchedulePage({ onOpenNewHearing }) {
           font-size: 0.85rem;
         }
 
+        body.light-theme .hearing-time-badge {
+          background: #eff6ff;
+          color: #4f46e5;
+        }
+
         @media (max-width: 992px) {
           .schedule-grid { grid-template-columns: 1fr; }
         }

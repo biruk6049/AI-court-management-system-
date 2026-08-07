@@ -87,6 +87,10 @@ export default function CasesPage({ onOpenNewCase, onSelectCase }) {
           background: rgba(255, 255, 255, 0.04);
           cursor: pointer;
         }
+
+        body.light-theme .cases-table tr:hover td {
+          background: #f1f5f9;
+        }
       `}</style>
 
       {/* Header */}

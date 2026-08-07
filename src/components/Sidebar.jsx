@@ -104,6 +104,23 @@ export default function Sidebar({ activePage, setActivePage, onOpenNewCase, isOp
           color: #e9d5ff;
         }
 
+        body.light-theme .nav-flex-item.active {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(14, 165, 233, 0.12));
+          color: #4f46e5;
+          border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        body.light-theme .nav-flex-item.ai-item {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(244, 63, 94, 0.08));
+          color: #7c3aed;
+          border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        body.light-theme .nav-flex-item.ai-item.active {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(244, 63, 94, 0.18));
+          color: #6d28d9;
+        }
+
         .nav-badge {
           background: rgba(255, 255, 255, 0.1);
           color: var(--text-main);
